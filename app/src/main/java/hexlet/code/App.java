@@ -19,8 +19,8 @@ public class App {
         String jdbsUrl = "jdbc:h2:mem:vaspav";
         if (System.getenv("JDBC_DATABASE_URL") != null) {
             jdbsUrl = System.getenv("JDBC_DATABASE_URL");
-            hikariConfig.setUsername(System.getenv("Username"));
-            hikariConfig.setPassword("Password");
+            hikariConfig.setUsername(System.getenv("JDBC_DATABASE_USERNAME"));
+            hikariConfig.setPassword("JDBC_DATABASE_PASSWORD");
         }
         hikariConfig.setJdbcUrl(jdbsUrl);
 
