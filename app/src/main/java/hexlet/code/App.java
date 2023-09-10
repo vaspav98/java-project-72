@@ -16,9 +16,11 @@ public class App {
     public static Javalin getApp() throws SQLException, IOException {
 
         HikariConfig hikariConfig = new HikariConfig();
-        String jdbsUrl = System.getenv("JDBC_DATABASE_URL");
-        if (System.getenv("JDBC_DATABASE_URL") == null) {
-            jdbsUrl = "jdbc:h2:mem:vaspav";
+        String jdbsUrl = "jdbc:h2:mem:vaspav";
+        if (System.getenv("JDBC_DATABASE_URL") != null) {
+            jdbsUrl = System.getenv("JDBC_DATABASE_URL");
+            hikariConfig.setUsername(System.getenv("Username"));
+            hikariConfig.setPassword("Password");
         }
         hikariConfig.setJdbcUrl(jdbsUrl);
 
