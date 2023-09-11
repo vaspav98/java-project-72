@@ -4,10 +4,8 @@ import io.javalin.http.Handler;
 
 public class ExampleController {
 
-    public static Handler hello = ctx -> ctx.result("Hello World");
-
-/*    public static Handler hello = ctx -> {
-        ctx.render("index.html");
-    };*/
+    public static Handler hello = ctx -> {
+        ctx.render("index.jte");
+    };
 
 }

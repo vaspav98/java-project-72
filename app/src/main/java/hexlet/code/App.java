@@ -2,7 +2,11 @@ package hexlet.code;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import gg.jte.ContentType;
+import gg.jte.TemplateEngine;
+import gg.jte.resolve.ResourceCodeResolver;
 import io.javalin.Javalin;
+import io.javalin.rendering.template.JavalinJte;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,11 +27,8 @@ public class App {
             hikariConfig.setPassword(System.getenv("JDBC_DATABASE_PASSWORD"));
         }
         hikariConfig.setJdbcUrl(jdbsUrl);
-
         HikariDataSource dataSource = new HikariDataSource(hikariConfig);
-
         String sql = Files.readString(Paths.get("src", "main", "resources", "schema.sql"));
-
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
@@ -37,12 +38,20 @@ public class App {
 
         Javalin app = Javalin.create(config -> {
             config.plugins.enableDevLogging();
+            JavalinJte.init(createTemplateEngine());
         });
 
         app.get("/", ExampleController.hello);
         System.out.println();
 
         return app;
+    }
+
+    public static TemplateEngine createTemplateEngine() {
+        ClassLoader classLoader = App.class.getClassLoader();
+        ResourceCodeResolver codeResolver =  new ResourceCodeResolver("templates", classLoader);
+        TemplateEngine templateEngine = TemplateEngine.create(codeResolver, ContentType.Html);
+        return templateEngine;
     }
 
     public static void main(String[] args) throws SQLException, IOException {
