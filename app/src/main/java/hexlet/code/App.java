@@ -5,9 +5,11 @@ import com.zaxxer.hikari.HikariDataSource;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.ResourceCodeResolver;
+import hexlet.code.repository.BaseRepository;
+import hexlet.code.controller.RootController;
+import hexlet.code.controller.UrlController;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -41,8 +43,10 @@ public class App {
             JavalinJte.init(createTemplateEngine());
         });
 
-        app.get("/", ExampleController.hello);
-        System.out.println();
+        app.get("/", RootController.showMainPage);
+        app.post("/urls", UrlController.createUrl);
+        app.get("/urls", UrlController.listUrls);
+        app.get("urls/{id}", UrlController.show);
 
         return app;
     }
