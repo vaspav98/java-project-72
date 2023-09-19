@@ -10,12 +10,15 @@ import hexlet.code.controller.RootController;
 import hexlet.code.controller.UrlController;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.stream.Collectors;
 
 public class App {
 
@@ -30,7 +33,11 @@ public class App {
         }
         hikariConfig.setJdbcUrl(jdbsUrl);
         HikariDataSource dataSource = new HikariDataSource(hikariConfig);
-        String sql = Files.readString(Paths.get("src", "main", "resources", "schema.sql"));
+        var url = App.class.getClassLoader().getResource("schema.sql");
+        var file = new File(url.getFile());
+        var sql = Files.lines(file.toPath())
+                .collect(Collectors.joining("\n"));
+//        String sql = Files.readString(Paths.get("src", "main", "resources", "schema.sql"));
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
