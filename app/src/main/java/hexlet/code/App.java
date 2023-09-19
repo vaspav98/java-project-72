@@ -47,6 +47,7 @@ public class App {
         app.post("/urls", UrlController.createUrl);
         app.get("/urls", UrlController.listUrls);
         app.get("urls/{id}", UrlController.show);
+        app.post("urls/{id}/checks", UrlController.check);
 
         return app;
     }

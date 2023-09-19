@@ -1,6 +1,7 @@
 package hexlet.code;
 
 import hexlet.code.model.Url;
+import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
@@ -70,6 +71,26 @@ public class AppTest {
         JavalinTest.test(app, ((server, client) -> {
             Response response = client.get("/urls/1");
             assertThat(response.code()).isEqualTo(404);
+        }));
+    }
+
+    @Test
+    public void textCheck() {
+        JavalinTest.test(app, ((server, client) -> {
+            Date date = new Date();
+            Timestamp createdAt = new Timestamp(date.getTime());
+            var url = new Url(1, "https://vk.com", createdAt);
+            UrlRepository.save(url);
+
+            Response response = client.post("/urls/1/checks");
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body().string()).contains(
+                    "<td>" + UrlCheckRepository.getListUrlCheck(1).get(0).getCreatedAt().toString() + "</td>");
+
+            Response response2 = client.post("/urls/1/checks");
+            assertThat(response2.code()).isEqualTo(200);
+            assertThat(response2.body().string()).contains(
+                    "<td>" + UrlCheckRepository.getListUrlCheck(1).get(1).getCreatedAt().toString() + "</td>");
         }));
     }
 

@@ -23,7 +23,13 @@
                             <td>
                                 <a href="/urls/${url.getId()}">${url.getName()}</a>
                             </td>
-                            <td></td>
+                            <td>
+                                @for(var urlCheck : page.getUrlChecks())
+                                    @if(urlCheck.getUrlId() == url.getId())
+                                        ${urlCheck.getCreatedAt().toString()}
+                                    @endif
+                                @endfor
+                            </td>
                             <td></td>
                         </tr>
                     @endfor

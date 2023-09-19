@@ -15,4 +15,8 @@ public class Check {
         System.out.println("File: " + url.getFile());
         System.out.println("Ref: " + url.getRef());
     }
+/*    ${for (var urlCheck : page.getUrlChecks()) {
+        if (urlCheck.getUrlId() == url.getId()) {
+            return urlCheck.getCreatedAt().toString()}
+    }*/
 }

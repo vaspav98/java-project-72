@@ -3,7 +3,9 @@ package hexlet.code.controller;
 import hexlet.code.dto.UrlPage;
 import hexlet.code.dto.UrlsPage;
 import hexlet.code.model.Url;
+import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.BaseRepository;
+import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
 import io.javalin.http.Handler;
 import io.javalin.http.NotFoundResponse;
@@ -48,7 +50,8 @@ public class UrlController extends BaseRepository {
 
     public static Handler listUrls = ctx -> {
         List<Url> urls = UrlRepository.getListUrls();
-        UrlsPage page = new UrlsPage(urls);
+        List<UrlCheck> urlChecks = UrlCheckRepository.getListRecentUrlCheck();
+        UrlsPage page = new UrlsPage(urls, urlChecks);
         page.setFlash(ctx.consumeSessionAttribute("flash"));
         page.setFlashType(ctx.consumeSessionAttribute("flashType"));
         ctx.render("allUrls.jte", Collections.singletonMap("page", page));
@@ -60,8 +63,24 @@ public class UrlController extends BaseRepository {
         if (url == null) {
             throw new NotFoundResponse("Url not found");
         }
-        UrlPage page = new UrlPage(url);
+        List<UrlCheck> urlChecks = UrlCheckRepository.getListUrlCheck(id);
+        UrlPage page = new UrlPage(url, urlChecks);
+        page.setFlash(ctx.consumeSessionAttribute("flash"));
+        page.setFlashType(ctx.consumeSessionAttribute("flashType"));
         ctx.render("show.jte", Collections.singletonMap("page", page));
+    };
+
+    public static Handler check = ctx -> {
+        UrlCheck urlCheck = new UrlCheck();
+        long id = ctx.pathParamAsClass("id", Long.class).get();
+        Date date = new Date();
+        Timestamp createdAt = new Timestamp(date.getTime());
+        urlCheck.setUrlId(id);
+        urlCheck.setCreatedAt(createdAt);
+        UrlCheckRepository.save(urlCheck);
+        ctx.sessionAttribute("flash", "Страница успешно проверена");
+        ctx.sessionAttribute("flashType", "alert-success");
+        ctx.redirect("/urls/" + id);
     };
 
 }
