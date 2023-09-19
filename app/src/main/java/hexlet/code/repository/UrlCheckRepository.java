@@ -50,7 +50,7 @@ public class UrlCheckRepository extends BaseRepository {
     }
 
     public static List<UrlCheck> getListRecentUrlCheck() throws SQLException {
-        String sql = "SELECT url_id, status_code, MAX(created_at) AS max FROM url_checks GROUP BY url_id";
+        String sql = "SELECT url_id, status_code, MAX(created_at) AS max FROM url_checks GROUP BY url_id, status_code";
         List<UrlCheck> urlChecks = new ArrayList<>();
         try (Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement()) {
