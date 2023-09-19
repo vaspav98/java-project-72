@@ -2,7 +2,7 @@ package gg.jte.generated.ondemand;
 import hexlet.code.dto.UrlsPage;
 public final class JteallUrlsGenerated {
 	public static final String JTE_NAME = "allUrls.jte";
-	public static final int[] JTE_LINE_INFO = {0,0,1,1,1,3,3,6,6,20,20,22,22,22,24,24,24,24,24,24,24,27,27,28,28,29,29,29,30,30,31,31,35,35,53,53,53};
+	public static final int[] JTE_LINE_INFO = {0,0,1,1,1,3,3,6,6,20,20,22,22,22,24,24,24,24,24,24,24,27,27,28,28,29,29,29,30,30,31,31,34,34,35,35,36,36,36,37,37,38,38,41,41,59,59,59};
 	public static void render(gg.jte.html.HtmlTemplateOutput jteOutput, gg.jte.html.HtmlInterceptor jteHtmlInterceptor, UrlsPage page) {
 		jteOutput.writeContent("\r\n");
 		gg.jte.generated.ondemand.layout.JtepageGenerated.render(jteOutput, jteHtmlInterceptor, new gg.jte.html.HtmlContent() {
@@ -30,7 +30,18 @@ public final class JteallUrlsGenerated {
 						}
 						jteOutput.writeContent("\r\n                                ");
 					}
-					jteOutput.writeContent("\r\n                            </td>\r\n                            <td></td>\r\n                        </tr>\r\n                    ");
+					jteOutput.writeContent("\r\n                            </td>\r\n                            <td>\r\n                                ");
+					for (var urlCheck : page.getUrlChecks()) {
+						jteOutput.writeContent("\r\n                                    ");
+						if (urlCheck.getUrlId() == url.getId()) {
+							jteOutput.writeContent("\r\n                                        ");
+							jteOutput.setContext("td", null);
+							jteOutput.writeUserContent(urlCheck.getStatusCode());
+							jteOutput.writeContent("\r\n                                    ");
+						}
+						jteOutput.writeContent("\r\n                                ");
+					}
+					jteOutput.writeContent("\r\n                            </td>\r\n                        </tr>\r\n                    ");
 				}
 				jteOutput.writeContent("\r\n                </tbody>\r\n            </table>\r\n\r\n            <nav aria-label=\"Page navigation\">\r\n                <ul class=\"pagination justify-content-center mt-5\">\r\n                    <li class=\"page-item disabled\">\r\n                        <a class=\"page-link\" href=\"/urls?page=0\">Previous</a>\r\n                    </li>\r\n                    <li class=\"page-item active\">\r\n                        <a class=\"page-link\" href=\"/urls?page=1\">1</a>\r\n                    </li>\r\n                    <li class=\"page-item disabled\">\r\n                        <a class=\"page-link\" href=\"/urls?page=2\">Next</a>\r\n                    </li>\r\n                </ul>\r\n            </nav>\r\n        </div>\r\n    ");
 			}

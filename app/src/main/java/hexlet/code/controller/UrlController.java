@@ -9,6 +9,13 @@ import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
 import io.javalin.http.Handler;
 import io.javalin.http.NotFoundResponse;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
+import kong.unirest.UnirestException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -71,16 +78,41 @@ public class UrlController extends BaseRepository {
     };
 
     public static Handler check = ctx -> {
-        UrlCheck urlCheck = new UrlCheck();
-        long id = ctx.pathParamAsClass("id", Long.class).get();
+        long urlId = ctx.pathParamAsClass("id", Long.class).get();
+        String url = UrlRepository.find(urlId).getName();
+        HttpResponse<String> response;
+        try {
+            response = Unirest.get(url).asString();
+        } catch (UnirestException e) {
+            ctx.sessionAttribute("flash", "Connect to " + url + " failed");
+            ctx.sessionAttribute("flashType", "alert-danger");
+            ctx.redirect("/urls/" + urlId);
+            return;
+        }
+
+        String body =  response.getBody();
+        Document doc = Jsoup.parse(body);
+        int statusCode = response.getStatus();
+        String title = doc.title();
+        Element h1Temp = doc.selectFirst("h1");
+        String h1 = null;
+        if (h1Temp != null) {
+            h1 = h1Temp.text();
+        }
+        Element descriptionTemp = doc.selectFirst("meta[name=description]");
+        String description = null;
+        if (descriptionTemp != null) {
+            description = descriptionTemp.attr("content");
+        }
         Date date = new Date();
         Timestamp createdAt = new Timestamp(date.getTime());
-        urlCheck.setUrlId(id);
-        urlCheck.setCreatedAt(createdAt);
+
+        UrlCheck urlCheck = new UrlCheck(statusCode, title, h1, description, urlId, createdAt);
         UrlCheckRepository.save(urlCheck);
+
         ctx.sessionAttribute("flash", "Страница успешно проверена");
         ctx.sessionAttribute("flashType", "alert-success");
-        ctx.redirect("/urls/" + id);
+        ctx.redirect("/urls/" + urlId);
     };
 
 }

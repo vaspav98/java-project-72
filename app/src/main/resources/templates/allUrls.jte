@@ -30,7 +30,13 @@
                                     @endif
                                 @endfor
                             </td>
-                            <td></td>
+                            <td>
+                                @for(var urlCheck : page.getUrlChecks())
+                                    @if(urlCheck.getUrlId() == url.getId())
+                                        ${urlCheck.getStatusCode()}
+                                    @endif
+                                @endfor
+                            </td>
                         </tr>
                     @endfor
                 </tbody>

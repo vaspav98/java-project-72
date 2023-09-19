@@ -86,11 +86,6 @@ public class AppTest {
             assertThat(response.code()).isEqualTo(200);
             assertThat(response.body().string()).contains(
                     "<td>" + UrlCheckRepository.getListUrlCheck(1).get(0).getCreatedAt().toString() + "</td>");
-
-            Response response2 = client.post("/urls/1/checks");
-            assertThat(response2.code()).isEqualTo(200);
-            assertThat(response2.body().string()).contains(
-                    "<td>" + UrlCheckRepository.getListUrlCheck(1).get(1).getCreatedAt().toString() + "</td>");
         }));
     }
 

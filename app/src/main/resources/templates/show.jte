@@ -42,10 +42,10 @@
                     @for(var urlCheck : page.getUrlChecks())
                         <tr>
                             <td>${urlCheck.getId()}</td>
-                            <td>Пока хз</td>
-                            <td>пока хз</td>
-                            <td>тоже хз</td>
-                            <td>тоже самое</td>
+                            <td>${urlCheck.getStatusCode()}</td>
+                            <td>${urlCheck.getTitle()}</td>
+                            <td>${urlCheck.getH1()}</td>
+                            <td>${urlCheck.getDescription()}</td>
                             <td>${urlCheck.getCreatedAt().toString()}</td>
                         </tr>
                     @endfor
