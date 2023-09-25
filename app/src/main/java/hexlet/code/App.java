@@ -10,10 +10,11 @@ import hexlet.code.controller.RootController;
 import hexlet.code.controller.UrlController;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinJte;
-
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -32,17 +33,17 @@ public class App {
         }
         hikariConfig.setJdbcUrl(jdbsUrl);
         HikariDataSource dataSource = new HikariDataSource(hikariConfig);
-        var url = App.class.getClassLoader().getResource("schema.sql");
-        var file = new File(url.getFile());
-        var sql = Files.lines(file.toPath())
-                .collect(Collectors.joining("\n"));
+        String sql = getContentFromStream(getFileFromResourceAsStream("schema.sql"));
+//        var url = App.class.getClassLoader().getResource("schema.sql");
+//        var file = new File(url.getFile());
+//        var sql = Files.lines(file.toPath())
+//                .collect(Collectors.joining("\n"));
 //        String sql = Files.readString(Paths.get("src", "main", "resources", "schema.sql"));
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute(sql);
         }
         BaseRepository.dataSource = dataSource;
-
 
         Javalin app = Javalin.create(config -> {
             config.plugins.enableDevLogging();
@@ -63,6 +64,18 @@ public class App {
         ResourceCodeResolver codeResolver =  new ResourceCodeResolver("templates", classLoader);
         TemplateEngine templateEngine = TemplateEngine.create(codeResolver, ContentType.Html);
         return templateEngine;
+    }
+
+    private static InputStream getFileFromResourceAsStream(String fileName) {
+        ClassLoader classLoader = App.class.getClassLoader();
+        InputStream is = classLoader.getResourceAsStream(fileName);
+        return is;
+    }
+
+    private static String getContentFromStream(InputStream is) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            return reader.lines().collect(Collectors.joining("\n"));
+        }
     }
 
     public static void main(String[] args) throws SQLException, IOException {

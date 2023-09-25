@@ -4,7 +4,6 @@ import hexlet.code.dto.UrlPage;
 import hexlet.code.dto.UrlsPage;
 import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
-import hexlet.code.repository.BaseRepository;
 import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
 import io.javalin.http.Handler;
@@ -15,15 +14,13 @@ import kong.unirest.UnirestException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
-public class UrlController extends BaseRepository {
+public class UrlController {
 
     public static Handler createUrl = ctx -> {
         String receivedUrl = ctx.formParam("url");
@@ -46,9 +43,7 @@ public class UrlController extends BaseRepository {
             return;
         }
 
-        Date date = new Date();
-        Timestamp createdAt = new Timestamp(date.getTime());
-        Url newUrl = new Url(name, createdAt);
+        Url newUrl = new Url(name);
         UrlRepository.save(newUrl);
         ctx.sessionAttribute("flash", "Страница успешно добавлена");
         ctx.sessionAttribute("flashType", "alert-success");
@@ -57,7 +52,7 @@ public class UrlController extends BaseRepository {
 
     public static Handler listUrls = ctx -> {
         List<Url> urls = UrlRepository.getListUrls();
-        List<UrlCheck> urlChecks = UrlCheckRepository.getListRecentUrlCheck();
+        Map<Long, UrlCheck> urlChecks = UrlCheckRepository.getRecentUrlChecks();
         UrlsPage page = new UrlsPage(urls, urlChecks);
         page.setFlash(ctx.consumeSessionAttribute("flash"));
         page.setFlashType(ctx.consumeSessionAttribute("flashType"));
@@ -66,10 +61,7 @@ public class UrlController extends BaseRepository {
 
     public static Handler show = ctx -> {
         long id = ctx.pathParamAsClass("id", Long.class).get();
-        Url url = UrlRepository.find(id);
-        if (url == null) {
-            throw new NotFoundResponse("Url not found");
-        }
+        Url url = UrlRepository.find(id).orElseThrow(() -> new NotFoundResponse("Url not found"));
         List<UrlCheck> urlChecks = UrlCheckRepository.getListUrlCheck(id);
         UrlPage page = new UrlPage(url, urlChecks);
         page.setFlash(ctx.consumeSessionAttribute("flash"));
@@ -79,39 +71,33 @@ public class UrlController extends BaseRepository {
 
     public static Handler check = ctx -> {
         long urlId = ctx.pathParamAsClass("id", Long.class).get();
-        String url = UrlRepository.find(urlId).getName();
+        String url = UrlRepository.find(urlId).get().getName();
         HttpResponse<String> response;
         try {
             response = Unirest.get(url).asString();
+            String body =  response.getBody();
+            Document doc = Jsoup.parse(body);
+            int statusCode = response.getStatus();
+            String title = doc.title();
+            Element h1Temp = doc.selectFirst("h1");
+            String h1 = h1Temp != null ? h1Temp.text() : null;
+            Element descriptionTemp = doc.selectFirst("meta[name=description]");
+            String description = descriptionTemp != null ? descriptionTemp.attr("content") : null;
+
+            UrlCheck urlCheck = new UrlCheck(statusCode, title, h1, description);
+            urlCheck.setUrlId(urlId);
+            UrlCheckRepository.save(urlCheck);
+
+            ctx.sessionAttribute("flash", "Страница успешно проверена");
+            ctx.sessionAttribute("flashType", "alert-success");
         } catch (UnirestException e) {
             ctx.sessionAttribute("flash", "Connect to " + url + " failed");
             ctx.sessionAttribute("flashType", "alert-danger");
-            ctx.redirect("/urls/" + urlId);
-            return;
+        } catch (Exception e) {
+            ctx.sessionAttribute("flash", e.getMessage());
+            ctx.sessionAttribute("flashType", "alert-danger");
         }
 
-        String body =  response.getBody();
-        Document doc = Jsoup.parse(body);
-        int statusCode = response.getStatus();
-        String title = doc.title();
-        Element h1Temp = doc.selectFirst("h1");
-        String h1 = null;
-        if (h1Temp != null) {
-            h1 = h1Temp.text();
-        }
-        Element descriptionTemp = doc.selectFirst("meta[name=description]");
-        String description = null;
-        if (descriptionTemp != null) {
-            description = descriptionTemp.attr("content");
-        }
-        Date date = new Date();
-        Timestamp createdAt = new Timestamp(date.getTime());
-
-        UrlCheck urlCheck = new UrlCheck(statusCode, title, h1, description, urlId, createdAt);
-        UrlCheckRepository.save(urlCheck);
-
-        ctx.sessionAttribute("flash", "Страница успешно проверена");
-        ctx.sessionAttribute("flashType", "alert-success");
         ctx.redirect("/urls/" + urlId);
     };
 

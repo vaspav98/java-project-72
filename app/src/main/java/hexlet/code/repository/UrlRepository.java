@@ -8,7 +8,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 public class UrlRepository extends BaseRepository {
 
@@ -17,7 +19,9 @@ public class UrlRepository extends BaseRepository {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, url.getName());
-            preparedStatement.setTimestamp(2, url.getCreatedAt());
+            Date date = new Date();
+            Timestamp createdAt = new Timestamp(date.getTime());
+            preparedStatement.setTimestamp(2, createdAt);
             preparedStatement.executeUpdate();
         }
     }
@@ -42,14 +46,16 @@ public class UrlRepository extends BaseRepository {
                 long id = resultSet.getLong("id");
                 String name = resultSet.getString("name");
                 Timestamp createdAt = resultSet.getTimestamp("created_at");
-                Url url = new Url(id, name, createdAt);
+                Url url = new Url(name);
+                url.setId(id);
+                url.setCreatedAt(createdAt);
                 result.add(url);
             }
             return result;
         }
     }
 
-    public static Url find(long id) throws SQLException {
+    public static Optional<Url> find(long id) throws SQLException {
         String sql = "SELECT * FROM urls WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -58,9 +64,12 @@ public class UrlRepository extends BaseRepository {
             if (resultSet.next()) {
                 String name = resultSet.getString("name");
                 Timestamp createdAt = resultSet.getTimestamp("created_at");
-                return new Url(id, name, createdAt);
+                Url url = new Url(name);
+                url.setId(id);
+                url.setCreatedAt(createdAt);
+                return Optional.of(url);
             }
-            return null;
+            return Optional.empty();
         }
     }
 

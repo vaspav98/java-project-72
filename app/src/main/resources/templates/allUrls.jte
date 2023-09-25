@@ -24,18 +24,14 @@
                                 <a href="/urls/${url.getId()}">${url.getName()}</a>
                             </td>
                             <td>
-                                @for(var urlCheck : page.getUrlChecks())
-                                    @if(urlCheck.getUrlId() == url.getId())
-                                        ${urlCheck.getCreatedAt().toString()}
-                                    @endif
-                                @endfor
+                                @if(page.getUrlChecks().containsKey(url.getId()))
+                                    ${page.getUrlChecks().get(url.getId()).getCreatedAt().toString()}
+                                @endif
                             </td>
                             <td>
-                                @for(var urlCheck : page.getUrlChecks())
-                                    @if(urlCheck.getUrlId() == url.getId())
-                                        ${urlCheck.getStatusCode()}
-                                    @endif
-                                @endfor
+                                @if(page.getUrlChecks().containsKey(url.getId()))
+                                    ${page.getUrlChecks().get(url.getId()).getStatusCode()}
+                                @endif
                             </td>
                         </tr>
                     @endfor

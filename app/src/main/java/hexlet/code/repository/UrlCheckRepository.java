@@ -1,7 +1,6 @@
 package hexlet.code.repository;
 
 import hexlet.code.model.UrlCheck;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,7 +8,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UrlCheckRepository extends BaseRepository {
 
@@ -23,7 +25,9 @@ public class UrlCheckRepository extends BaseRepository {
             preparedStatement.setString(3, urlCheck.getH1());
             preparedStatement.setString(4, urlCheck.getDescription());
             preparedStatement.setLong(5, urlCheck.getUrlId());
-            preparedStatement.setTimestamp(6, urlCheck.getCreatedAt());
+            Date date = new Date();
+            Timestamp createdAt = new Timestamp(date.getTime());
+            preparedStatement.setTimestamp(6, createdAt);
             preparedStatement.executeUpdate();
         }
     }
@@ -42,27 +46,33 @@ public class UrlCheckRepository extends BaseRepository {
                 String h1 = resultSet.getString("h1");
                 String description = resultSet.getString("description");
                 Timestamp createdAt = resultSet.getTimestamp("created_at");
-                UrlCheck urlCheck = new UrlCheck(id, statusCode, title, h1, description, urlId, createdAt);
+                UrlCheck urlCheck = new UrlCheck(statusCode, title, h1, description);
+                urlCheck.setId(id);
+                urlCheck.setUrlId(urlId);
+                urlCheck.setCreatedAt(createdAt);
                 urlChecks.add(urlCheck);
             }
             return urlChecks;
         }
     }
 
-    public static List<UrlCheck> getListRecentUrlCheck() throws SQLException {
-        String sql = "SELECT url_id, status_code, MAX(created_at) AS max FROM url_checks GROUP BY url_id, status_code";
-        List<UrlCheck> urlChecks = new ArrayList<>();
+    public static Map<Long, UrlCheck> getRecentUrlChecks() throws SQLException {
+        String sql = "SELECT DISTINCT ON (url_id) * from url_checks order by created_at DESC";
         try (Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement()) {
             ResultSet resultSet = statement.executeQuery(sql);
+            var result = new HashMap<Long, UrlCheck>();
             while (resultSet.next()) {
                 UrlCheck urlCheck = new UrlCheck();
-                urlCheck.setUrlId(resultSet.getLong("url_id"));
-                urlCheck.setStatusCode(resultSet.getInt("status_code"));
-                urlCheck.setCreatedAt(resultSet.getTimestamp("max"));
-                urlChecks.add(urlCheck);
+                long urlId = resultSet.getLong("url_id");
+                int statusCode = resultSet.getInt("status_code");
+                Timestamp createdAt = resultSet.getTimestamp("created_at");
+                urlCheck.setUrlId(urlId);
+                urlCheck.setStatusCode(statusCode);
+                urlCheck.setCreatedAt(createdAt);
+                result.put(urlId, urlCheck);
             }
-            return urlChecks;
+            return result;
         }
     }
 }

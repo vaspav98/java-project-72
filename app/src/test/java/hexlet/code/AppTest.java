@@ -1,21 +1,32 @@
 package hexlet.code;
 
 import hexlet.code.model.Url;
-import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import okhttp3.Response;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Date;
+import java.nio.file.Path;
 
 public class AppTest {
     Javalin app;
+
+    private static Path getFixturePath(String fileName) {
+        return Paths.get("src", "test", "resources", "fixtures", fileName).toAbsolutePath().normalize();
+    }
+
+    private static String readFixture(String fileName) throws IOException {
+        Path filePath = getFixturePath(fileName);
+        return Files.readString(filePath).trim();
+    }
 
     @BeforeEach
     public final void setUp() throws SQLException, IOException {
@@ -33,7 +44,7 @@ public class AppTest {
     @Test
     public void testCreateUrl() {
         JavalinTest.test(app, ((server, client) -> {
-            var requestBody = "url=https://vk.com/id486745806ergwerg";
+            String requestBody = "url=https://vk.com/id486745806ergwerg";
             Response response = client.post("/urls", requestBody);
             assertThat(response.code()).isEqualTo(200);
             assertThat(response.body().string()).contains("<a href=\"/urls/1\">https://vk.com</a>");
@@ -57,9 +68,8 @@ public class AppTest {
     @Test
     public void testShow() {
         JavalinTest.test(app, ((server, client) -> {
-            Date date = new Date();
-            Timestamp createdAt = new Timestamp(date.getTime());
-            var url = new Url(1, "https://vk.com", createdAt);
+            var url = new Url("https://vk.com");
+            url.setId(1);
             UrlRepository.save(url);
             Response response = client.get("/urls/" + url.getId());
             assertThat(response.code()).isEqualTo(200);
@@ -75,17 +85,21 @@ public class AppTest {
     }
 
     @Test
-    public void textCheck() {
+    public void textCheck() throws IOException {
+        MockWebServer mockServer = new MockWebServer();
+        String mockUrl = mockServer.url("/").toString();
+        MockResponse mockResponse = new MockResponse().setBody(readFixture("index.html"));
+        mockServer.enqueue(mockResponse);
         JavalinTest.test(app, ((server, client) -> {
-            Date date = new Date();
-            Timestamp createdAt = new Timestamp(date.getTime());
-            var url = new Url(1, "https://vk.com", createdAt);
-            UrlRepository.save(url);
-
-            Response response = client.post("/urls/1/checks");
+            String requestBody = "url=" + mockUrl;
+            Response response = client.post("/urls", requestBody);
             assertThat(response.code()).isEqualTo(200);
-            assertThat(response.body().string()).contains(
-                    "<td>" + UrlCheckRepository.getListUrlCheck(1).get(0).getCreatedAt().toString() + "</td>");
+            assertThat(UrlRepository.find(1)).isNotNull();
+
+            Response response2 = client.post("/urls/1/checks");
+            assertThat(response2.code()).isEqualTo(200);
+            assertThat(response2.body().string()).contains("<td>Калькулятор</td>",
+                    "<td>Мой калькулятор из дополнительных заданий на Хекслете</td>");
         }));
     }
 
