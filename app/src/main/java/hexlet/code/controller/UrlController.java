@@ -33,9 +33,8 @@ public class UrlController {
             ctx.redirect("/");
             return;
         }
+        String name = String.format("%s://%s", url.getProtocol(), url.getAuthority());
 
-        String port = url.getPort() == -1 ? "" : ":" + url.getPort();
-        String name = url.getProtocol() + "://" + url.getHost() + port;
         if (UrlRepository.checkRecordExist(name)) {
             ctx.sessionAttribute("flash", "Страница уже существует");
             ctx.sessionAttribute("flashType", "alert-danger");
@@ -61,7 +60,7 @@ public class UrlController {
 
     public static Handler show = ctx -> {
         long id = ctx.pathParamAsClass("id", Long.class).get();
-        Url url = UrlRepository.find(id).orElseThrow(() -> new NotFoundResponse("Url not found"));
+        Url url = UrlRepository.findById(id).orElseThrow(() -> new NotFoundResponse("Url not found"));
         List<UrlCheck> urlChecks = UrlCheckRepository.getListUrlCheck(id);
         UrlPage page = new UrlPage(url, urlChecks);
         page.setFlash(ctx.consumeSessionAttribute("flash"));
@@ -71,7 +70,7 @@ public class UrlController {
 
     public static Handler check = ctx -> {
         long urlId = ctx.pathParamAsClass("id", Long.class).get();
-        String url = UrlRepository.find(urlId).get().getName();
+        String url = UrlRepository.findById(urlId).get().getName();
         HttpResponse<String> response;
         try {
             response = Unirest.get(url).asString();

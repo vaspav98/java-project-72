@@ -55,7 +55,7 @@ public class UrlRepository extends BaseRepository {
         }
     }
 
-    public static Optional<Url> find(long id) throws SQLException {
+    public static Optional<Url> findById(long id) throws SQLException {
         String sql = "SELECT * FROM urls WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -69,6 +69,26 @@ public class UrlRepository extends BaseRepository {
                 url.setCreatedAt(createdAt);
                 return Optional.of(url);
             }
+            return Optional.empty();
+        }
+    }
+
+    public static Optional<Url> findByName(String name) throws SQLException {
+        String sql = "SELECT * FROM urls WHERE name = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, name);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                long id = resultSet.getLong("id");
+                Timestamp createdAt = resultSet.getTimestamp("created_at");
+                Url url = new Url(name);
+                url.setId(id);
+                url.setCreatedAt(createdAt);
+                System.out.println("вернулся не пустой");
+                return Optional.of(url);
+            }
+            System.out.println("вернулся пустой");
             return Optional.empty();
         }
     }

@@ -49,7 +49,6 @@ public class App {
             config.plugins.enableDevLogging();
             JavalinJte.init(createTemplateEngine());
         });
-
         app.get("/", RootController.showMainPage);
         app.post("/urls", UrlController.createUrl);
         app.get("/urls", UrlController.listUrls);

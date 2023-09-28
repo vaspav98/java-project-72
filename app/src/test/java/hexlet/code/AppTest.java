@@ -1,6 +1,8 @@
 package hexlet.code;
 
 import hexlet.code.model.Url;
+import hexlet.code.model.UrlCheck;
+import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
@@ -94,12 +96,19 @@ public class AppTest {
             String requestBody = "url=" + mockUrl;
             Response response = client.post("/urls", requestBody);
             assertThat(response.code()).isEqualTo(200);
-            assertThat(UrlRepository.find(1)).isNotNull();
+            String formattedName = String.format("%s://%s", mockServer.url("/").url().getProtocol(),
+                    mockServer.url("/").url().getAuthority());
+            Url addedUrl = UrlRepository.findByName(formattedName).orElse(null);
+            assertThat(addedUrl).isNotNull();
+            assertThat(addedUrl.getName()).isEqualTo(formattedName);
 
-            Response response2 = client.post("/urls/1/checks");
+            Response response2 = client.post("/urls/" + addedUrl.getId() + "/checks");
             assertThat(response2.code()).isEqualTo(200);
-            assertThat(response2.body().string()).contains("<td>Калькулятор</td>",
-                    "<td>Мой калькулятор из дополнительных заданий на Хекслете</td>");
+            UrlCheck addedUrlCheck = UrlCheckRepository.getListUrlCheck(addedUrl.getId()).get(0);
+            assertThat(addedUrlCheck.getTitle()).isEqualTo("Калькулятор");
+            assertThat(addedUrlCheck.getH1()).isEqualTo("Калькулятор");
+            assertThat(addedUrlCheck.getDescription())
+                    .isEqualTo("Мой калькулятор из дополнительных заданий на Хекслете");
         }));
     }
 
