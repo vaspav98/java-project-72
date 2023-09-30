@@ -93,4 +93,13 @@ public class UrlRepository extends BaseRepository {
         }
     }
 
+    public static void destroy(long id) throws SQLException {
+        String sql = "DELETE FROM urls WHERE id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+            preparedStatement.executeUpdate();
+        }
+    }
+
 }

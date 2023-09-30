@@ -96,7 +96,6 @@ public class UrlController {
             ctx.sessionAttribute("flash", e.getMessage());
             ctx.sessionAttribute("flashType", "alert-danger");
         }
-
         ctx.redirect("/urls/" + urlId);
     };
 

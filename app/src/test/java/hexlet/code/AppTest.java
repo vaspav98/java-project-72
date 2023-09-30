@@ -71,9 +71,10 @@ public class AppTest {
     public void testShow() {
         JavalinTest.test(app, ((server, client) -> {
             var url = new Url("https://vk.com");
-            url.setId(1);
             UrlRepository.save(url);
-            Response response = client.get("/urls/" + url.getId());
+            var addedUrl = UrlRepository.findByName("https://vk.com");
+            long id = addedUrl.get().getId();
+            Response response = client.get("/urls/" + id);
             assertThat(response.code()).isEqualTo(200);
         }));
     }
@@ -81,7 +82,8 @@ public class AppTest {
     @Test
     public void testUrlNotFound() {
         JavalinTest.test(app, ((server, client) -> {
-            Response response = client.get("/urls/1");
+            UrlRepository.destroy(122);
+            Response response = client.get("/urls/122");
             assertThat(response.code()).isEqualTo(404);
         }));
     }
@@ -92,10 +94,12 @@ public class AppTest {
         String mockUrl = mockServer.url("/").toString();
         MockResponse mockResponse = new MockResponse().setBody(readFixture("index.html"));
         mockServer.enqueue(mockResponse);
+
         JavalinTest.test(app, ((server, client) -> {
             String requestBody = "url=" + mockUrl;
             Response response = client.post("/urls", requestBody);
             assertThat(response.code()).isEqualTo(200);
+
             String formattedName = String.format("%s://%s", mockServer.url("/").url().getProtocol(),
                     mockServer.url("/").url().getAuthority());
             Url addedUrl = UrlRepository.findByName(formattedName).orElse(null);
@@ -104,6 +108,7 @@ public class AppTest {
 
             Response response2 = client.post("/urls/" + addedUrl.getId() + "/checks");
             assertThat(response2.code()).isEqualTo(200);
+
             UrlCheck addedUrlCheck = UrlCheckRepository.getListUrlCheck(addedUrl.getId()).get(0);
             assertThat(addedUrlCheck.getTitle()).isEqualTo("Калькулятор");
             assertThat(addedUrlCheck.getH1()).isEqualTo("Калькулятор");
