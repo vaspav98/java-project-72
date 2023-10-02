@@ -8,8 +8,6 @@
 ## Description
 This application is a website that allows you to analyze specified web pages for SEO suitability.
 
----
-
 ## Used technologies
 * Javalin
 * JDBC
@@ -20,12 +18,10 @@ This application is a website that allows you to analyze specified web pages for
 * Bootstrap
 * Docker (for deploy)
 * And others
----
 
 ## Requirements
 * JDK 20
 * Gradle 8.2
----
 
 ## Usage
 ```bash
@@ -33,9 +29,6 @@ make install-dist
 make start-dist
 # Open http://localhost:8080
 ```
----
-
-
 
 ### Link on working app:
 [![Render.com](https://render.com/images/render-banner.png)](https://java-project-4.onrender.com)
