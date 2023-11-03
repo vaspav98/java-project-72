@@ -21,7 +21,7 @@ This application is a website that allows you to analyze specified web pages for
 
 ## Requirements
 * JDK 20
-* Gradle 8.2
+* Gradle 8.4
 
 ## Usage
 ```bash
